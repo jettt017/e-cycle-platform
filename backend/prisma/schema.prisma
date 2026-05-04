@@ -1,0 +1,74 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider  = "postgresql"
+}
+
+model User {
+  id           Int       @id @default(autoincrement())
+  name         String
+  email        String    @unique
+  passwordHash String    @map("password_hash")
+  role         String    @default("user") // "user" atau "admin"
+  totalPoints  Int       @default(0) @map("total_points")
+  createdAt    DateTime  @default(now()) @map("created_at")
+
+  transactions Transaction[]
+
+  @@map("users")
+}
+
+model DropPoint {
+  id             Int       @id @default(autoincrement())
+  name           String
+  address        String
+  latitude       Float?
+  longitude      Float?
+  operatingHours String?   @map("operating_hours")
+  createdAt      DateTime  @default(now()) @map("created_at")
+
+  transactions   Transaction[]
+
+  @@map("drop_points")
+}
+
+model WasteCategory {
+  id            Int       @id @default(autoincrement())
+  name          String
+  pointsPerKg   Int       @map("points_per_kg")
+  description   String?
+
+  items         TransactionItem[]
+
+  @@map("waste_categories")
+}
+
+model Transaction {
+  id                Int       @id @default(autoincrement())
+  userId            Int       @map("user_id")
+  dropPointId       Int       @map("drop_point_id")
+  status            String    @default("pending") // pending, verified, completed
+  totalPointsEarned Int       @default(0) @map("total_points_earned")
+  createdAt         DateTime  @default(now()) @map("created_at")
+
+  user              User      @relation(fields: [userId], references: [id])
+  dropPoint         DropPoint @relation(fields: [dropPointId], references: [id])
+  items             TransactionItem[]
+
+  @@map("transactions")
+}
+
+model TransactionItem {
+  id                Int       @id @default(autoincrement())
+  transactionId     Int       @map("transaction_id")
+  wasteCategoryId   Int       @map("waste_category_id")
+  weightKg          Float     @map("weight_kg")
+  pointsEarned      Int       @map("points_earned")
+
+  transaction       Transaction   @relation(fields: [transactionId], references: [id])
+  wasteCategory     WasteCategory @relation(fields: [wasteCategoryId], references: [id])
+
+  @@map("transaction_items")
+}
