@@ -17,7 +17,7 @@ model User {
 
   transactions Transaction[]
 
-  @@map("users")
+  @@map("ecycle_users")
 }
 
 model DropPoint {
@@ -31,7 +31,7 @@ model DropPoint {
 
   transactions   Transaction[]
 
-  @@map("drop_points")
+  @@map("ecycle_drop_points")
 }
 
 model WasteCategory {
@@ -42,7 +42,7 @@ model WasteCategory {
 
   items         TransactionItem[]
 
-  @@map("waste_categories")
+  @@map("ecycle_waste_categories")
 }
 
 model Transaction {
@@ -57,7 +57,7 @@ model Transaction {
   dropPoint         DropPoint @relation(fields: [dropPointId], references: [id])
   items             TransactionItem[]
 
-  @@map("transactions")
+  @@map("ecycle_transactions")
 }
 
 model TransactionItem {
@@ -70,5 +70,5 @@ model TransactionItem {
   transaction       Transaction   @relation(fields: [transactionId], references: [id])
   wasteCategory     WasteCategory @relation(fields: [wasteCategoryId], references: [id])
 
-  @@map("transaction_items")
+  @@map("ecycle_transaction_items")
 }
