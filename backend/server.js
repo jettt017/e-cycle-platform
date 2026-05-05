@@ -1,5 +1,6 @@
 import 'dotenv/config';
 import express from 'express';
+import crypto from 'crypto';
 import cors from 'cors';
 import { Pool } from 'pg';
 import { PrismaPg } from '@prisma/adapter-pg';
@@ -67,6 +68,56 @@ app.post('/api/estimate', (req, res) => {
   else if (condition === 'broken') baseValue *= 0.5;
 
   res.json({ estimatedValue: baseValue, currency: 'IDR' });
+});
+
+// Endpoint untuk menerima data form penjemputan
+app.post('/api/pickups', async (req, res) => {
+  try {
+    const { name, phone, address, city, postalCode, date, time, deviceTypes, deviceCount, kondisi, notes, priority } = req.body;
+    
+    // Buat ID unik untuk user anonim & submission
+    const userId = crypto.randomUUID();
+    const submissionId = crypto.randomUUID();
+    const submissionCode = `SUB-${Date.now()}`;
+    
+    // Parse waktu dari "09:00 - 11:00" atau sejenisnya, menggunakan regex untuk menangkap dash / en-dash
+    const [startStr, endStr] = time ? time.split(/\s*[-–]\s*/) : ['08:00', '10:00'];
+    const startTime = new Date(`1970-01-01T${startStr.padStart(5, '0')}:00Z`);
+    const endTime = new Date(`1970-01-01T${endStr.padStart(5, '0')}:00Z`);
+
+    // 1. Simpan ke tabel submissions (karena pickups butuh submission_id)
+    await prisma.submissions.create({
+      data: {
+        id: submissionId,
+        submission_code: submissionCode,
+        user_id: userId,
+        method: 'pickup',
+        devices_detail: { deviceTypes, deviceCount, kondisi },
+        user_notes: notes,
+      }
+    });
+
+    // 2. Simpan ke tabel pickups
+    const newPickup = await prisma.pickups.create({
+      data: {
+        submission_id: submissionId,
+        user_id: userId,
+        scheduled_date: new Date(date),
+        scheduled_time_start: startTime,
+        scheduled_time_end: endTime,
+        pickup_address: address,
+        pickup_city: city,
+        notes: priority ? `Priority: ${priority} | ${notes}` : notes,
+        courier_name: name, // Simpan nama pengirim sementara di sini jika tidak ada field khusus
+        courier_phone: phone, // Simpan telepon pengirim sementara di sini
+      }
+    });
+
+    res.status(201).json({ success: true, message: 'Pickup scheduled successfully!', data: newPickup });
+  } catch (error) {
+    console.error("Gagal menyimpan data pickup:", error);
+    res.status(500).json({ success: false, error: "Internal Server Error" });
+  }
 });
 
 app.listen(PORT, () => {

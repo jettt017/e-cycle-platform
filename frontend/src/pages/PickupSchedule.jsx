@@ -560,7 +560,7 @@ function PickupSchedule() {
     }, 100);
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
     const required = ["name", "phone", "address", "city", "date", "time"];
     const missing = required.filter((f) => !form[f]);
@@ -570,7 +570,25 @@ function PickupSchedule() {
       );
       return;
     }
-    setSubmitted(true);
+
+    try {
+      const response = await fetch("http://localhost:5000/api/pickups", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(form)
+      });
+      
+      const result = await response.json();
+      
+      if (response.ok) {
+        setSubmitted(true);
+      } else {
+        alert("Gagal menjadwalkan penjemputan: " + (result.error || "Terjadi kesalahan."));
+      }
+    } catch (error) {
+      console.error("Error submitting form:", error);
+      alert("Gagal terhubung ke server. Pastikan backend menyala.");
+    }
   };
 
   const handleReset = () => {
