@@ -4,6 +4,11 @@ import { MapPin, Search, Navigation } from 'lucide-react';
 function DropPoints() {
   const [searchQuery, setSearchQuery] = useState('');
   const [locations, setLocations] = useState([]);
+  const [selectedLocation, setSelectedLocation] = useState(null);
+  const [userCoords, setUserCoords] = useState(null);
+  const [geoError, setGeoError] = useState('');
+  const [locatingUser, setLocatingUser] = useState(false);
+  const [nearbyOnly, setNearbyOnly] = useState(false);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -11,6 +16,9 @@ function DropPoints() {
       .then(res => res.json())
       .then(data => {
         setLocations(data);
+        if (data.length > 0) {
+          setSelectedLocation(data[0]);
+        }
         setLoading(false);
       })
       .catch(err => {
@@ -18,6 +26,104 @@ function DropPoints() {
         setLoading(false);
       });
   }, []);
+
+  const toRadians = (degree) => (degree * Math.PI) / 180;
+
+  const calculateDistanceKm = (lat1, lon1, lat2, lon2) => {
+    const earthRadiusKm = 6371;
+    const dLat = toRadians(lat2 - lat1);
+    const dLon = toRadians(lon2 - lon1);
+    const a =
+      Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+      Math.cos(toRadians(lat1)) * Math.cos(toRadians(lat2)) *
+      Math.sin(dLon / 2) * Math.sin(dLon / 2);
+    const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+    return earthRadiusKm * c;
+  };
+
+  const getUserLocation = () => {
+    if (!navigator.geolocation) {
+      setGeoError('Browser tidak mendukung geolocation.');
+      return;
+    }
+
+    setLocatingUser(true);
+    setGeoError('');
+
+    navigator.geolocation.getCurrentPosition(
+      (position) => {
+        setUserCoords({
+          latitude: position.coords.latitude,
+          longitude: position.coords.longitude
+        });
+        setNearbyOnly(true);
+        setLocatingUser(false);
+      },
+      () => {
+        setGeoError('Izin lokasi ditolak atau lokasi tidak tersedia.');
+        setLocatingUser(false);
+      },
+      {
+        enableHighAccuracy: true,
+        timeout: 10000
+      }
+    );
+  };
+
+  const filteredLocations = locations
+  .map((loc) => {
+    const hasCoordinates =
+      typeof loc.latitude === 'number' && typeof loc.longitude === 'number';
+
+    if (!userCoords || !hasCoordinates) {
+      return { ...loc, computedDistanceKm: null };
+    }
+
+    const computedDistanceKm = calculateDistanceKm(
+      userCoords.latitude,
+      userCoords.longitude,
+      loc.latitude,
+      loc.longitude
+    );
+
+    return { ...loc, computedDistanceKm };
+  })
+  .filter((loc) => {
+    const keyword = searchQuery.trim().toLowerCase();
+    const matchesKeyword = !keyword || (
+      loc.name?.toLowerCase().includes(keyword) ||
+      loc.address?.toLowerCase().includes(keyword)
+    );
+
+    if (!matchesKeyword) {
+      return false;
+    }
+
+    if (!nearbyOnly || !userCoords) {
+      return true;
+    }
+
+    return typeof loc.computedDistanceKm === 'number';
+  })
+  .sort((a, b) => {
+    const aDistance = typeof a.computedDistanceKm === 'number' ? a.computedDistanceKm : Number.MAX_SAFE_INTEGER;
+    const bDistance = typeof b.computedDistanceKm === 'number' ? b.computedDistanceKm : Number.MAX_SAFE_INTEGER;
+    return aDistance - bDistance;
+  });
+
+  useEffect(() => {
+    if (!selectedLocation && filteredLocations.length > 0) {
+      setSelectedLocation(filteredLocations[0]);
+    }
+
+    if (selectedLocation && !filteredLocations.some((loc) => loc.id === selectedLocation.id)) {
+      setSelectedLocation(filteredLocations[0] || null);
+    }
+  }, [filteredLocations, selectedLocation]);
+
+  const selectedMapQuery = selectedLocation
+    ? encodeURIComponent(`${selectedLocation.name} ${selectedLocation.address}`)
+    : '';
 
   return (
     <div className="container" style={{ padding: '2rem 2rem 6rem' }}>
@@ -32,6 +138,36 @@ function DropPoints() {
       <div className="cards-grid" style={{ gridTemplateColumns: '1fr 2fr' }}>
         {/* Sidebar / List */}
         <div className="card" style={{ padding: '1.5rem', maxHeight: '600px', overflowY: 'auto' }}>
+          <div style={{ display: 'flex', gap: '0.5rem', marginBottom: '1rem', flexWrap: 'wrap' }}>
+            <button
+              className="pill-btn"
+              style={{ padding: '0.5rem 0.9rem', fontSize: '0.8rem' }}
+              onClick={getUserLocation}
+              disabled={locatingUser}
+              type="button"
+            >
+              {locatingUser ? 'Mencari lokasi...' : 'Gunakan Lokasi Saya'}
+            </button>
+            <button
+              type="button"
+              onClick={() => setNearbyOnly((value) => !value)}
+              className="pill-btn"
+              style={{
+                padding: '0.5rem 0.9rem',
+                fontSize: '0.8rem',
+                backgroundColor: nearbyOnly ? 'var(--primary)' : 'transparent',
+                color: nearbyOnly ? '#fff' : 'inherit'
+              }}
+              disabled={!userCoords}
+            >
+              {nearbyOnly ? 'Nearby Aktif' : 'Filter Nearby'}
+            </button>
+          </div>
+
+          {geoError ? (
+            <p style={{ color: '#c0392b', fontSize: '0.8rem', marginBottom: '0.8rem' }}>{geoError}</p>
+          ) : null}
+
           <div style={{ position: 'relative', marginBottom: '1.5rem' }}>
             <Search size={18} style={{ position: 'absolute', left: '1rem', top: '50%', transform: 'translateY(-50%)', color: 'var(--text-muted)' }} />
             <input 
@@ -50,10 +186,22 @@ function DropPoints() {
           <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
             {loading ? (
               <p style={{ textAlign: 'center', color: 'var(--text-muted)' }}>Loading drop points...</p>
-            ) : locations.length === 0 ? (
+            ) : filteredLocations.length === 0 ? (
               <p style={{ textAlign: 'center', color: 'var(--text-muted)' }}>Tidak ada data drop point.</p>
-            ) : locations.map(loc => (
-              <div key={loc.id} style={{ padding: '1rem', border: '1px solid #eee', borderRadius: '16px', transition: 'var(--transition)', cursor: 'pointer' }} className="hover-highlight">
+            ) : filteredLocations.map(loc => (
+              <div
+                key={loc.id}
+                onClick={() => setSelectedLocation(loc)}
+                style={{
+                  padding: '1rem',
+                  border: selectedLocation?.id === loc.id ? '1px solid var(--primary)' : '1px solid #eee',
+                  borderRadius: '16px',
+                  transition: 'var(--transition)',
+                  cursor: 'pointer',
+                  backgroundColor: selectedLocation?.id === loc.id ? 'rgba(49, 196, 115, 0.07)' : 'transparent'
+                }}
+                className="hover-highlight"
+              >
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '0.5rem' }}>
                   <h4 style={{ fontWeight: 600 }}>{loc.name}</h4>
                   <span style={{ fontSize: '0.75rem', fontWeight: 600, color: 'var(--primary)' }}>Buka</span>
@@ -61,8 +209,22 @@ function DropPoints() {
                 <p style={{ fontSize: '0.85rem', color: 'var(--text-muted)', marginBottom: '0.5rem' }}>{loc.address}</p>
                 <p style={{ fontSize: '0.75rem', color: 'var(--text-muted)', marginBottom: '1rem' }}>Jam Buka: {loc.operatingHours || '08:00 - 17:00'}</p>
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                  <span style={{ fontSize: '0.8rem', display: 'flex', alignItems: 'center', gap: '0.2rem' }}><Navigation size={14}/> {loc.distance}</span>
-                  <button className="pill-btn" style={{ padding: '0.4rem 1rem', fontSize: '0.8rem' }}>Directions</button>
+                  <span style={{ fontSize: '0.8rem', display: 'flex', alignItems: 'center', gap: '0.2rem' }}>
+                    <Navigation size={14}/>
+                    {typeof loc.computedDistanceKm === 'number'
+                      ? `${loc.computedDistanceKm.toFixed(1)} km`
+                      : (loc.distance || '-')}
+                  </span>
+                  <a
+                    className="pill-btn"
+                    style={{ padding: '0.4rem 1rem', fontSize: '0.8rem', textDecoration: 'none' }}
+                    href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(`${loc.name} ${loc.address}`)}`}
+                    target="_blank"
+                    rel="noreferrer"
+                    onClick={(e) => e.stopPropagation()}
+                  >
+                    Directions
+                  </a>
                 </div>
               </div>
             ))}
@@ -70,15 +232,27 @@ function DropPoints() {
         </div>
 
         {/* Map Area */}
-        <div className="card" style={{ padding: '0', overflow: 'hidden', minHeight: '400px', position: 'relative', display: 'flex', alignItems: 'center', justifyContent: 'center', backgroundColor: '#e5e3df' }}>
-          {/* Placeholder Map Background */}
-          <div style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, opacity: 0.5, backgroundImage: 'radial-gradient(#ccc 1px, transparent 1px)', backgroundSize: '20px 20px' }}></div>
-          
-          <div style={{ textAlign: 'center', zIndex: 1, backgroundColor: 'white', padding: '2rem', borderRadius: 'var(--border-radius)', boxShadow: '0 10px 30px rgba(0,0,0,0.1)' }}>
-            <MapPin size={40} color="var(--primary)" style={{ margin: '0 auto 1rem' }} />
-            <h3>Interactive Map</h3>
-            <p style={{ color: 'var(--text-muted)', fontSize: '0.9rem', marginTop: '0.5rem' }}>Google Maps / Mapbox integration<br/>will be displayed here.</p>
-          </div>
+        <div className="card" style={{ padding: '0', overflow: 'hidden', minHeight: '400px', position: 'relative' }}>
+          {loading ? (
+            <div style={{ height: '100%', minHeight: '400px', display: 'grid', placeItems: 'center', color: 'var(--text-muted)' }}>
+              Memuat peta...
+            </div>
+          ) : selectedLocation ? (
+            <iframe
+              title={`Map of ${selectedLocation.name}`}
+              src={`https://www.google.com/maps?q=${selectedMapQuery}&output=embed`}
+              style={{ width: '100%', height: '100%', minHeight: '400px', border: 0 }}
+              loading="lazy"
+              referrerPolicy="no-referrer-when-downgrade"
+            />
+          ) : (
+            <div style={{ height: '100%', minHeight: '400px', display: 'grid', placeItems: 'center', color: 'var(--text-muted)' }}>
+              <div style={{ textAlign: 'center' }}>
+                <MapPin size={34} color="var(--primary)" style={{ marginBottom: '0.7rem' }} />
+                <p>Pilih drop point untuk melihat peta.</p>
+              </div>
+            </div>
+          )}
         </div>
       </div>
     </div>
