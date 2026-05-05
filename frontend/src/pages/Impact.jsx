@@ -1,4 +1,5 @@
 import React from 'react';
+import { Link } from 'react-router-dom';
 import { Leaf, Activity, Battery, Droplets, Wind } from 'lucide-react';
 
 function Impact() {
@@ -51,7 +52,7 @@ function Impact() {
           <h3 style={{ color: 'white', marginBottom: '0.5rem' }}>Ready to contribute?</h3>
           <p style={{ color: '#aaa', margin: 0 }}>Join thousands of others in making our earth a cleaner place.</p>
         </div>
-        <button className="pill-btn" style={{ backgroundColor: 'var(--primary)', color: 'white' }}>Start Recycling</button>
+        <Link to="/pickup" className="pill-btn" style={{ backgroundColor: 'var(--primary)', color: 'white' }}>Start Recycling</Link>
       </div>
     </div>
   );

@@ -47,7 +47,7 @@ function Footer() {
           <ul style={{ listStyle: 'none', padding: 0, margin: 0, color: '#aaa', fontSize: '0.9rem', display: 'flex', flexDirection: 'column', gap: '0.8rem' }}>
             <li style={{ display: 'flex', alignItems: 'flex-start', gap: '0.5rem' }}>
               <MapPin size={18} color="var(--primary)" style={{ flexShrink: 0 }} />
-              <span>Gedung E-Cycle, Jl. Sudirman No. 45<br/>Jakarta Pusat, 10220</span>
+              <span>Jl. Rungkut Madya, Gn. Anyar, Kec. Gn. Anyar, Surabaya, Jawa Timur 60294<br/>Surabaya timur</span>
             </li>
             <li style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
               <Phone size={18} color="var(--primary)" />
