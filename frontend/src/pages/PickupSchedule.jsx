@@ -14,11 +14,6 @@ import {
   X,
   AlertCircle,
   Loader2,
-  Circle,
-  AlertTriangle,
-  Wrench,
-  ThumbsUp,
-  Zap,
 } from "lucide-react";
 
 const inputStyle = {
@@ -426,12 +421,12 @@ Pilih deviceTypes dan kondisi yang relevan dari list yang disediakan. Jika bukan
 // ─── Checklist Kondisi Component ─────────────────────────────────────────────
 function KondisiChecklist({ value, onChange }) {
   const options = [
-    { id: "menyala", label: "Menyala normal", icon: CheckCircle2, iconColor: "var(--primary)" },
-    { id: "mati", label: "Mati total", icon: Circle, iconColor: "#6b7280" },
-    { id: "layarRetak", label: "Layar retak", icon: AlertCircle, iconColor: "#ef4444" },
-    { id: "bateraiBocor", label: "Baterai bocor", icon: AlertTriangle, iconColor: "#f59e0b" },
-    { id: "fisikRusak", label: "Fisik rusak", icon: Wrench, iconColor: "#3b82f6" },
-    { id: "kondisiBaik", label: "Kondisi baik", icon: ThumbsUp, iconColor: "#14b8a6" },
+    { id: "menyala", label: "Menyala normal", icon: "✅" },
+    { id: "mati", label: "Mati total", icon: "⚫" },
+    { id: "layarRetak", label: "Layar retak", icon: "💔" },
+    { id: "bateraiBocor", label: "Baterai bocor", icon: "⚠️" },
+    { id: "fisikRusak", label: "Fisik rusak", icon: "🔨" },
+    { id: "kondisiBaik", label: "Kondisi baik", icon: "👍" },
   ];
 
   const toggle = (id) => {
@@ -468,7 +463,7 @@ function KondisiChecklist({ value, onChange }) {
             gap: "0.35rem",
           }}
         >
-          <opt.icon size={14} color={opt.iconColor} strokeWidth={2.4} />
+          <span>{opt.icon}</span>
           {opt.label}
         </div>
       ))}
@@ -1015,15 +1010,13 @@ function PickupSchedule() {
                       id: "reguler",
                       label: "Reguler",
                       desc: "Gratis · 1–2 hari kerja",
-                      icon: Truck,
-                      iconColor: "var(--primary)",
+                      icon: "🚚",
                     },
                     {
                       id: "prioritas",
                       label: "Prioritas",
                       desc: "Berbayar · Hari yang sama",
-                      icon: Zap,
-                      iconColor: "#f59e0b",
+                      icon: "⚡",
                     },
                   ].map((opt) => (
                     <div
@@ -1042,21 +1035,9 @@ function PickupSchedule() {
                       }}
                     >
                       <div
-                        style={{
-                          width: 34,
-                          height: 34,
-                          borderRadius: 12,
-                          display: "flex",
-                          alignItems: "center",
-                          justifyContent: "center",
-                          marginBottom: "0.5rem",
-                          background:
-                            form.priority === opt.id
-                              ? "rgba(46,211,113,0.12)"
-                              : "#f8f8f5",
-                        }}
+                        style={{ fontSize: "1.25rem", marginBottom: "0.25rem" }}
                       >
-                        <opt.icon size={18} color={opt.iconColor} strokeWidth={2.3} />
+                        {opt.icon}
                       </div>
                       <div style={{ fontWeight: 700, fontSize: "0.9rem" }}>
                         {opt.label}
