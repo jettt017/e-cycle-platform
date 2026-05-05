@@ -14,6 +14,11 @@ import {
   X,
   AlertCircle,
   Loader2,
+  Circle,
+  AlertTriangle,
+  Wrench,
+  ThumbsUp,
+  Zap,
 } from "lucide-react";
 
 const inputStyle = {
@@ -421,12 +426,12 @@ Pilih deviceTypes dan kondisi yang relevan dari list yang disediakan. Jika bukan
 // ─── Checklist Kondisi Component ─────────────────────────────────────────────
 function KondisiChecklist({ value, onChange }) {
   const options = [
-    { id: "menyala", label: "Menyala normal", icon: "✅" },
-    { id: "mati", label: "Mati total", icon: "⚫" },
-    { id: "layarRetak", label: "Layar retak", icon: "💔" },
-    { id: "bateraiBocor", label: "Baterai bocor", icon: "⚠️" },
-    { id: "fisikRusak", label: "Fisik rusak", icon: "🔨" },
-    { id: "kondisiBaik", label: "Kondisi baik", icon: "👍" },
+    { id: "menyala", label: "Menyala normal", icon: CheckCircle2, iconColor: "var(--primary)" },
+    { id: "mati", label: "Mati total", icon: Circle, iconColor: "#6b7280" },
+    { id: "layarRetak", label: "Layar retak", icon: AlertCircle, iconColor: "#ef4444" },
+    { id: "bateraiBocor", label: "Baterai bocor", icon: AlertTriangle, iconColor: "#f59e0b" },
+    { id: "fisikRusak", label: "Fisik rusak", icon: Wrench, iconColor: "#3b82f6" },
+    { id: "kondisiBaik", label: "Kondisi baik", icon: ThumbsUp, iconColor: "#14b8a6" },
   ];
 
   const toggle = (id) => {
@@ -463,7 +468,7 @@ function KondisiChecklist({ value, onChange }) {
             gap: "0.35rem",
           }}
         >
-          <span>{opt.icon}</span>
+          <opt.icon size={14} color={opt.iconColor} strokeWidth={2.4} />
           {opt.label}
         </div>
       ))}
@@ -560,7 +565,7 @@ function PickupSchedule() {
     }, 100);
   };
 
-  const handleSubmit = async (e) => {
+  const handleSubmit = (e) => {
     e.preventDefault();
     const required = ["name", "phone", "address", "city", "date", "time"];
     const missing = required.filter((f) => !form[f]);
@@ -570,25 +575,7 @@ function PickupSchedule() {
       );
       return;
     }
-
-    try {
-      const response = await fetch("http://localhost:5000/api/pickups", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(form)
-      });
-      
-      const result = await response.json();
-      
-      if (response.ok) {
-        setSubmitted(true);
-      } else {
-        alert("Gagal menjadwalkan penjemputan: " + (result.error || "Terjadi kesalahan."));
-      }
-    } catch (error) {
-      console.error("Error submitting form:", error);
-      alert("Gagal terhubung ke server. Pastikan backend menyala.");
-    }
+    setSubmitted(true);
   };
 
   const handleReset = () => {
@@ -1028,13 +1015,15 @@ function PickupSchedule() {
                       id: "reguler",
                       label: "Reguler",
                       desc: "Gratis · 1–2 hari kerja",
-                      icon: "🚚",
+                      icon: Truck,
+                      iconColor: "var(--primary)",
                     },
                     {
                       id: "prioritas",
                       label: "Prioritas",
                       desc: "Berbayar · Hari yang sama",
-                      icon: "⚡",
+                      icon: Zap,
+                      iconColor: "#f59e0b",
                     },
                   ].map((opt) => (
                     <div
@@ -1053,9 +1042,21 @@ function PickupSchedule() {
                       }}
                     >
                       <div
-                        style={{ fontSize: "1.25rem", marginBottom: "0.25rem" }}
+                        style={{
+                          width: 34,
+                          height: 34,
+                          borderRadius: 12,
+                          display: "flex",
+                          alignItems: "center",
+                          justifyContent: "center",
+                          marginBottom: "0.5rem",
+                          background:
+                            form.priority === opt.id
+                              ? "rgba(46,211,113,0.12)"
+                              : "#f8f8f5",
+                        }}
                       >
-                        {opt.icon}
+                        <opt.icon size={18} color={opt.iconColor} strokeWidth={2.3} />
                       </div>
                       <div style={{ fontWeight: 700, fontSize: "0.9rem" }}>
                         {opt.label}
