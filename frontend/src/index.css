@@ -19,7 +19,15 @@
 }
 
 body {
-  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+  font-family:
+    "Inter",
+    -apple-system,
+    BlinkMacSystemFont,
+    "Segoe UI",
+    Roboto,
+    Helvetica,
+    Arial,
+    sans-serif;
   background-color: var(--bg-color);
   color: var(--text-main);
   line-height: 1.5;
@@ -36,6 +44,13 @@ button {
   border: none;
   background: none;
   font-family: inherit;
+}
+
+/* App */
+.app {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
 }
 
 /* Utilities */
@@ -99,7 +114,7 @@ button {
 
 .icon-btn:hover {
   border-color: var(--text-main);
-  background-color: rgba(0,0,0,0.05);
+  background-color: rgba(0, 0, 0, 0.05);
 }
 
 /* Layout */
@@ -202,8 +217,8 @@ button {
   justify-content: space-between;
   align-items: center;
   padding: 2rem 0;
-  border-top: 1px solid rgba(0,0,0,0.1);
-  border-bottom: 1px solid rgba(0,0,0,0.1);
+  border-top: 1px solid rgba(0, 0, 0, 0.1);
+  border-bottom: 1px solid rgba(0, 0, 0, 0.1);
   margin-bottom: 4rem;
 }
 
@@ -235,7 +250,7 @@ button {
 
 .card:hover {
   transform: translateY(-5px);
-  box-shadow: 0 20px 40px rgba(0,0,0,0.05);
+  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.05);
 }
 
 .card.highlight {
@@ -332,14 +347,20 @@ button {
 }
 
 @keyframes fadeIn {
-  from { opacity: 0; transform: translateY(10px); }
-  to { opacity: 1; transform: translateY(0); }
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
 .hover-highlight:hover {
   background-color: var(--card-bg-subtle);
   transform: translateY(-2px);
-  box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
 }
 
 /* Footer Styles */
@@ -379,7 +400,8 @@ button {
   transform: translateY(-3px);
 }
 
-.footer-links-col h4, .footer-contact h4 {
+.footer-links-col h4,
+.footer-contact h4 {
   font-size: 1.1rem;
   margin-bottom: 1.5rem;
   font-weight: 600;
