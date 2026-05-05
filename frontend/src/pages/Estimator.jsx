@@ -1,32 +1,11 @@
 import React, { useState } from 'react';
-import { Calculator, CheckCircle2 } from 'lucide-react';
-import smartphoneImage from '../assets/smartphone.svg';
-import laptopImage from '../assets/laptop.svg';
-import tvImage from '../assets/tv-monitor.svg';
+import { Calculator, Smartphone, Laptop, Tv, CheckCircle2 } from 'lucide-react';
 
 function Estimator() {
   const [device, setDevice] = useState('');
   const [brand, setBrand] = useState('');
   const [condition, setCondition] = useState('');
   const [estimatedValue, setEstimatedValue] = useState(null);
-
-  const deviceOptions = [
-    {
-      label: 'Smartphone',
-      image: smartphoneImage,
-      alt: 'Smartphone illustration',
-    },
-    {
-      label: 'Laptop',
-      image: laptopImage,
-      alt: 'Laptop illustration',
-    },
-    {
-      label: 'Other (TV/Monitor)',
-      image: tvImage,
-      alt: 'TV monitor illustration',
-    },
-  ];
 
   const handleEstimate = (e) => {
     e.preventDefault();
@@ -64,30 +43,20 @@ function Estimator() {
             <div>
               <label style={{ display: 'block', marginBottom: '0.5rem', fontWeight: 600 }}>1. What type of device is it?</label>
               <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '0.5rem' }}>
-                {deviceOptions.map((option) => (
+                {['Smartphone', 'Laptop', 'Other (TV/Monitor)'].map(type => (
                   <div 
-                    key={option.label} 
-                    onClick={() => setDevice(option.label)}
+                    key={type} 
+                    onClick={() => setDevice(type)}
                     style={{ 
-                      padding: '0.85rem 0.5rem 1rem', textAlign: 'center', border: `2px solid ${device === option.label ? 'var(--primary)' : '#eee'}`, 
+                      padding: '1rem 0.5rem', textAlign: 'center', border: `2px solid ${device === type ? 'var(--primary)' : '#eee'}`, 
                       borderRadius: '12px', cursor: 'pointer', transition: 'var(--transition)',
-                      backgroundColor: device === option.label ? 'rgba(46, 211, 113, 0.05)' : 'transparent'
+                      backgroundColor: device === type ? 'rgba(46, 211, 113, 0.05)' : 'transparent'
                     }}
                   >
-                    <img
-                      src={option.image}
-                      alt={option.alt}
-                      style={{
-                        width: '56px',
-                        height: '56px',
-                        objectFit: 'cover',
-                        borderRadius: '16px',
-                        display: 'block',
-                        margin: '0 auto 0.65rem',
-                        boxShadow: '0 8px 16px rgba(0,0,0,0.08)'
-                      }}
-                    />
-                    <span style={{fontSize:'0.8rem', fontWeight: 600}}>{option.label}</span>
+                    {type === 'Smartphone' ? <Smartphone size={24} style={{margin:'0 auto 0.5rem'}} /> : 
+                     type === 'Laptop' ? <Laptop size={24} style={{margin:'0 auto 0.5rem'}} /> : 
+                     <Tv size={24} style={{margin:'0 auto 0.5rem'}} />}
+                    <span style={{fontSize:'0.8rem', fontWeight: 600}}>{type}</span>
                   </div>
                 ))}
               </div>
