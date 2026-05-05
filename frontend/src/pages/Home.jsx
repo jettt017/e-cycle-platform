@@ -1,7 +1,14 @@
-import React from 'react';
-import { Link } from 'react-router-dom';
-import { Recycle, MapPin, Calculator, Leaf, ArrowUpRight, ArrowRight } from 'lucide-react';
-import heroImg from '../assets/hero.png';
+import React from "react";
+import { Link } from "react-router-dom";
+import {
+  Recycle,
+  MapPin,
+  Calculator,
+  Leaf,
+  ArrowUpRight,
+  ArrowRight,
+} from "lucide-react";
+import heroImg from "../assets/hero.png";
 
 function Home() {
   return (
@@ -10,7 +17,7 @@ function Home() {
         {/* Hero Section */}
         <section className="hero">
           <h1>
-            Your Old 
+            Your Old
             <div className="hero-img-container">
               <img src={heroImg} alt="Person holding recycled phone" />
             </div>
@@ -18,7 +25,7 @@ function Home() {
             <br />
             Are Valuable
           </h1>
-          
+
           <div className="hero-actions">
             <Link to="/drop-points" className="pill-btn">
               Find Drop-Point
@@ -58,12 +65,27 @@ function Home() {
               <MapPin size={20} color="var(--primary)" />
             </div>
             <h3>Smart Drop-Point Finder</h3>
-            <p>Locate the nearest official e-waste drop points with real-time operating hours and accepted device lists.</p>
+            <p>
+              Locate the nearest official e-waste drop points with real-time
+              operating hours and accepted device lists.
+            </p>
             <div className="card-footer">
               <div className="brands">
-                <span style={{fontSize:'0.8rem', color:'var(--text-muted)'}}>Samsung • Apple • Asus</span>
+                <span
+                  style={{ fontSize: "0.8rem", color: "var(--text-muted)" }}
+                >
+                  Samsung • Apple • Asus
+                </span>
               </div>
-              <Link to="/drop-points" className="icon-btn" style={{backgroundColor: 'var(--primary)', color: 'white', borderColor: 'var(--primary)'}}>
+              <Link
+                to="/drop-points"
+                className="icon-btn"
+                style={{
+                  backgroundColor: "var(--primary)",
+                  color: "white",
+                  borderColor: "var(--primary)",
+                }}
+              >
                 <ArrowUpRight size={18} />
               </Link>
             </div>
@@ -71,14 +93,27 @@ function Home() {
 
           {/* Card 2 */}
           <div className="card">
-            <span className="tag-badge" style={{backgroundColor: 'rgba(0,0,0,0.05)', color: 'var(--text-main)'}}>AI Driven</span>
+            <span
+              className="tag-badge"
+              style={{
+                backgroundColor: "rgba(0,0,0,0.05)",
+                color: "var(--text-main)",
+              }}
+            >
+              AI Driven
+            </span>
             <div className="card-icon">
               <Calculator size={20} />
             </div>
             <h3>E-Waste Estimator</h3>
-            <p>Get instant valuation for your used devices based on real-time market data and give them a second life.</p>
+            <p>
+              Get instant valuation for your used devices based on real-time
+              market data and give them a second life.
+            </p>
             <div className="card-footer">
-              <span style={{fontSize:'0.9rem', fontWeight:600}}>Check Value</span>
+              <span style={{ fontSize: "0.9rem", fontWeight: 600 }}>
+                Check Value
+              </span>
               <Link to="/estimator" className="icon-btn">
                 <ArrowUpRight size={18} />
               </Link>
@@ -87,17 +122,30 @@ function Home() {
 
           {/* Card 3 */}
           <div className="card">
-            <span className="tag-badge" style={{backgroundColor: 'rgba(0,0,0,0.05)', color: 'var(--text-main)'}}>Logistics</span>
+            <span
+              className="tag-badge"
+              style={{
+                backgroundColor: "rgba(0,0,0,0.05)",
+                color: "var(--text-main)",
+              }}
+            >
+              Logistics
+            </span>
             <div className="card-icon">
               <Recycle size={20} />
             </div>
             <h3>Pickup Scheduling</h3>
-            <p>Can't make it to a drop point? Schedule a home pickup with our verified eco-logistics partners.</p>
+            <p>
+              Can't make it to a drop point? Schedule a home pickup with our
+              verified eco-logistics partners.
+            </p>
             <div className="card-footer">
-              <span style={{fontSize:'0.9rem', fontWeight:600}}>Book a Ride</span>
-              <button className="icon-btn" onClick={() => alert('Pickup Scheduling coming soon!')}>
+              <span style={{ fontSize: "0.9rem", fontWeight: 600 }}>
+                Book a Ride
+              </span>
+              <Link to="/pickup" className="icon-btn">
                 <ArrowUpRight size={18} />
-              </button>
+              </Link>
             </div>
           </div>
         </section>
@@ -106,11 +154,32 @@ function Home() {
       {/* Impact Section */}
       <section className="impact-section">
         <div className="container">
-          <span className="tag-badge" style={{backgroundColor: 'rgba(0,0,0,0.05)', color: 'var(--text-main)'}}>Our Impact</span>
-          <h2>Together, We're Making<br/>A Difference</h2>
+          <span
+            className="tag-badge"
+            style={{
+              backgroundColor: "rgba(0,0,0,0.05)",
+              color: "var(--text-main)",
+            }}
+          >
+            Our Impact
+          </span>
+          <h2>
+            Together, We're Making
+            <br />A Difference
+          </h2>
           <div className="impact-number">12,450</div>
-          <p style={{fontWeight: 600, fontSize: '1.2rem', marginBottom: '2rem'}}>Kg of E-Waste Recycled Successfully</p>
-          <Link to="/impact" className="pill-btn outline">View Full Impact Dashboard</Link>
+          <p
+            style={{
+              fontWeight: 600,
+              fontSize: "1.2rem",
+              marginBottom: "2rem",
+            }}
+          >
+            Kg of E-Waste Recycled Successfully
+          </p>
+          <Link to="/impact" className="pill-btn outline">
+            View Full Impact Dashboard
+          </Link>
         </div>
       </section>
     </>
