@@ -1,13 +1,13 @@
+import 'dotenv/config';
 import express from 'express';
 import cors from 'cors';
-import dotenv from 'dotenv';
-import pg from 'pg';
+import { Pool } from 'pg';
 import { PrismaPg } from '@prisma/adapter-pg';
 import { PrismaClient } from '@prisma/client';
 
-dotenv.config();
+console.log("ALARM DEBUG - DATABASE_URL:", process.env.DATABASE_URL ? "TERBACA MANTAP" : "KOSONG!");
 
-const { Pool } = pg;
+// 2. Inisialisasi senjata utama kita (Prisma)
 const pool = new Pool({ connectionString: process.env.DATABASE_URL });
 const adapter = new PrismaPg(pool);
 const prisma = new PrismaClient({ adapter });
@@ -26,17 +26,21 @@ app.get('/', (req, res) => {
 
 // Auto-Seed Data: Jika database masih kosong, kita isi otomatis
 async function seedDropPoints() {
-  const count = await prisma.dropPoint.count();
-  if (count === 0) {
-    console.log("Database kosong. Menyisipkan data awal Drop Points...");
-    await prisma.dropPoint.createMany({
-      data: [
-        { name: 'Eco Recycle Center', address: 'Jl. Sudirman No. 123', latitude: -6.200000, longitude: 106.816666, operatingHours: '08:00 - 17:00' },
-        { name: 'Tech Waste Drop', address: 'Jl. Thamrin No. 45', latitude: -6.190000, longitude: 106.820000, operatingHours: '09:00 - 18:00' },
-        { name: 'E-Waste Bank Jaksel', address: 'Jl. Kemang Raya No. 10', latitude: -6.260000, longitude: 106.810000, operatingHours: '07:00 - 15:00' }
-      ]
-    });
-    console.log("Data awal berhasil disisipkan!");
+  try {
+    const count = await prisma.dropPoint.count();
+    if (count === 0) {
+      console.log("Database kosong. Menyisipkan data awal Drop Points...");
+      await prisma.dropPoint.createMany({
+        data: [
+          { name: 'Eco Recycle Center', address: 'Jl. Sudirman No. 123', latitude: -6.200000, longitude: 106.816666, operatingHours: '08:00 - 17:00' },
+          { name: 'Tech Waste Drop', address: 'Jl. Thamrin No. 45', latitude: -6.190000, longitude: 106.820000, operatingHours: '09:00 - 18:00' },
+          { name: 'E-Waste Bank Jaksel', address: 'Jl. Kemang Raya No. 10', latitude: -6.260000, longitude: 106.810000, operatingHours: '07:00 - 15:00' }
+        ]
+      });
+      console.log("Data awal berhasil disisipkan!");
+    }
+  } catch (err) {
+    console.error('Seed error:', err);
   }
 }
 seedDropPoints();
@@ -47,14 +51,14 @@ app.get('/api/droppoints', async (req, res) => {
     const dropPoints = await prisma.dropPoint.findMany();
     res.json(dropPoints);
   } catch (error) {
-    res.status(500).json({ error: "Gagal mengambil data dari database" });
+    console.error('Gagal mengambil data dari database', error);
+    res.status(500).json({ error: 'Gagal mengambil data dari database' });
   }
 });
 
-// Mock Route for E-Waste Estimator
+// Mock Route for E-Waste Estimator (Biarkan aja dulu, nanti kita upgrade di fase selanjutnya)
 app.post('/api/estimate', (req, res) => {
   const { deviceType, brand, condition } = req.body;
-  // Simple mock logic
   let baseValue = 0;
   if (deviceType === 'smartphone') baseValue = 50000;
   else if (deviceType === 'laptop') baseValue = 150000;
