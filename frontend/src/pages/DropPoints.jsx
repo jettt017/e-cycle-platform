@@ -1,6 +1,33 @@
 import React, { useState, useEffect } from 'react';
 import { MapPin, Search, Navigation } from 'lucide-react';
 
+const DEFAULT_DROP_POINTS = [
+  {
+    id: 1,
+    name: 'Eco Recycle Center',
+    address: 'Jl. Sudirman No. 123',
+    latitude: -6.2,
+    longitude: 106.816666,
+    operatingHours: '08:00 - 17:00'
+  },
+  {
+    id: 2,
+    name: 'Tech Waste Drop',
+    address: 'Jl. Thamrin No. 45',
+    latitude: -6.19,
+    longitude: 106.82,
+    operatingHours: '09:00 - 18:00'
+  },
+  {
+    id: 3,
+    name: 'E-Waste Bank Jaksel',
+    address: 'Jl. Kemang Raya No. 10',
+    latitude: -6.26,
+    longitude: 106.81,
+    operatingHours: '07:00 - 15:00'
+  }
+];
+
 function DropPoints() {
   const [searchQuery, setSearchQuery] = useState('');
   const [locations, setLocations] = useState([]);
@@ -12,17 +39,25 @@ function DropPoints() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    fetch('http://localhost:5000/api/droppoints')
+    const envApiBaseUrl = import.meta.env.VITE_API_BASE_URL || (import.meta.env.DEV ? 'http://localhost:5000' : '');
+    const apiBaseUrl = envApiBaseUrl.replace(/\/$/, '');
+
+    fetch(`${apiBaseUrl}/api/droppoints`)
       .then(res => res.json())
       .then(data => {
-        setLocations(data);
-        if (data.length > 0) {
+        if (Array.isArray(data) && data.length > 0) {
+          setLocations(data);
           setSelectedLocation(data[0]);
+        } else {
+          setLocations(DEFAULT_DROP_POINTS);
+          setSelectedLocation(DEFAULT_DROP_POINTS[0]);
         }
         setLoading(false);
       })
       .catch(err => {
         console.error("Error fetching drop points:", err);
+        setLocations(DEFAULT_DROP_POINTS);
+        setSelectedLocation(DEFAULT_DROP_POINTS[0]);
         setLoading(false);
       });
   }, []);
