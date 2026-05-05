@@ -1,6 +1,6 @@
-import React from 'react';
-import { Link } from 'react-router-dom';
-import { Recycle, Phone } from 'lucide-react';
+import React from "react";
+import { Link } from "react-router-dom";
+import { Recycle, Phone } from "lucide-react";
 
 function Navbar() {
   return (
@@ -13,13 +13,16 @@ function Navbar() {
         <Link to="/">Home</Link>
         <Link to="/drop-points">Drop Points</Link>
         <Link to="/estimator">Estimator</Link>
+        <Link to="/pickup">Pickup</Link>
         <Link to="/impact">Our Impact</Link>
       </div>
       <div className="nav-actions">
         <button className="icon-btn">
           <Phone size={18} />
         </button>
-        <Link to="/drop-points" className="pill-btn outline">Recycle Now</Link>
+        <Link to="/pickup" className="pill-btn outline">
+          Schedule Pickup
+        </Link>
       </div>
     </nav>
   );
