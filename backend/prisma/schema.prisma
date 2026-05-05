@@ -3,72 +3,393 @@ generator client {
 }
 
 datasource db {
-  provider  = "postgresql"
+  provider = "postgresql"
 }
 
 model User {
-  id           Int       @id @default(autoincrement())
-  name         String
-  email        String    @unique
-  passwordHash String    @map("password_hash")
-  role         String    @default("user") // "user" atau "admin"
-  totalPoints  Int       @default(0) @map("total_points")
-  createdAt    DateTime  @default(now()) @map("created_at")
-
-  transactions Transaction[]
+  id             String    @id @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
+  auth_id        String?   @unique @db.Uuid
+  full_name      String    @db.VarChar(150)
+  email          String    @unique @db.VarChar(255)
+  phone          String?   @db.VarChar(20)
+  role           user_role @default(consumer)
+  user_type      user_type @default(individual)
+  avatar_url     String?
+  province       String?   @db.VarChar(100)
+  city           String?   @db.VarChar(100)
+  district       String?   @db.VarChar(100)
+  address_detail String?
+  latitude       Decimal?  @db.Decimal(10, 8)
+  longitude      Decimal?  @db.Decimal(11, 8)
+  totalPoints    Int       @default(0) @map("total_points")
+  level          Int       @default(1)
+  badge_count    Int       @default(0)
+  is_verified    Boolean   @default(false)
+  is_active      Boolean   @default(true)
+  last_login_at  DateTime? @db.Timestamptz(6)
+  createdAt      DateTime  @default(now()) @map("created_at") @db.Timestamptz(6)
+  updated_at     DateTime  @default(now()) @db.Timestamptz(6)
 
   @@map("users")
 }
 
-model DropPoint {
-  id             Int       @id @default(autoincrement())
-  name           String
-  address        String
-  latitude       Float?
-  longitude      Float?
-  operatingHours String?   @map("operating_hours")
-  createdAt      DateTime  @default(now()) @map("created_at")
-
-  transactions   Transaction[]
-
-  @@map("drop_points")
+model ecycle_drop_points {
+  id              Int       @id @default(autoincrement())
+  name            String
+  address         String
+  latitude        Float?
+  longitude       Float?
+  operating_hours String?
+  created_at      DateTime? @default(now()) @db.Timestamp(6)
 }
 
-model WasteCategory {
+model ecycle_transaction_items {
+  id                Int   @id @default(autoincrement())
+  transaction_id    Int?
+  waste_category_id Int?
+  weight_kg         Float
+  points_earned     Int
+}
+
+model ecycle_transactions {
+  id                  Int       @id @default(autoincrement())
+  user_id             Int?
+  drop_point_id       Int?
+  status              String?   @default("pending")
+  total_points_earned Int?      @default(0)
+  created_at          DateTime? @default(now()) @db.Timestamp(6)
+}
+
+model ecycle_users {
   id            Int       @id @default(autoincrement())
   name          String
-  pointsPerKg   Int       @map("points_per_kg")
+  email         String    @unique
+  password_hash String
+  role          String?   @default("user")
+  total_points  Int?      @default(0)
+  created_at    DateTime? @default(now()) @db.Timestamp(6)
+}
+
+model ecycle_waste_categories {
+  id            Int     @id @default(autoincrement())
+  name          String
+  points_per_kg Int
   description   String?
-
-  items         TransactionItem[]
-
-  @@map("waste_categories")
 }
 
-model Transaction {
-  id                Int       @id @default(autoincrement())
-  userId            Int       @map("user_id")
-  dropPointId       Int       @map("drop_point_id")
-  status            String    @default("pending") // pending, verified, completed
-  totalPointsEarned Int       @default(0) @map("total_points_earned")
-  createdAt         DateTime  @default(now()) @map("created_at")
+/// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
+/// This model contains row level security and requires additional setup for migrations. Visit https://pris.ly/d/row-level-security for more info.
+model partner_device_types {
+  id         String          @id @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
+  partner_id String          @db.Uuid
+  category   device_category
+  notes      String?
+  is_active  Boolean         @default(true)
+  created_at DateTime        @default(now()) @db.Timestamptz(6)
 
-  user              User      @relation(fields: [userId], references: [id])
-  dropPoint         DropPoint @relation(fields: [dropPointId], references: [id])
-  items             TransactionItem[]
-
-  @@map("transactions")
+  @@index([category], map: "idx_partner_device_types_category")
+  @@index([partner_id], map: "idx_partner_device_types_partner")
 }
 
-model TransactionItem {
-  id                Int       @id @default(autoincrement())
-  transactionId     Int       @map("transaction_id")
-  wasteCategoryId   Int       @map("waste_category_id")
-  weightKg          Float     @map("weight_kg")
-  pointsEarned      Int       @map("points_earned")
+/// This table contains check constraints and requires additional setup for migrations. Visit https://pris.ly/d/check-constraints for more info.
+/// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
+/// This model contains row level security and requires additional setup for migrations. Visit https://pris.ly/d/row-level-security for more info.
+model partner_reviews {
+  id            String    @id @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
+  partner_id    String    @db.Uuid
+  user_id       String    @db.Uuid
+  submission_id String?   @db.Uuid
+  rating        Int       @db.SmallInt
+  review_text   String?
+  image_urls    String[]
+  is_published  Boolean   @default(true)
+  partner_reply String?
+  replied_at    DateTime? @db.Timestamptz(6)
+  created_at    DateTime  @default(now()) @db.Timestamptz(6)
+  updated_at    DateTime  @default(now()) @db.Timestamptz(6)
 
-  transaction       Transaction   @relation(fields: [transactionId], references: [id])
-  wasteCategory     WasteCategory @relation(fields: [wasteCategoryId], references: [id])
+  @@unique([user_id, submission_id])
+}
 
-  @@map("transaction_items")
+/// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
+/// This model contains row level security and requires additional setup for migrations. Visit https://pris.ly/d/row-level-security for more info.
+model partners {
+  id                String         @id @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
+  user_id           String?        @db.Uuid
+  name              String         @db.VarChar(200)
+  partner_type      partner_type
+  status            partner_status @default(pending)
+  registration_no   String?        @db.VarChar(100)
+  tax_id            String?        @db.VarChar(50)
+  certificate_url   String?
+  epr_registered    Boolean?       @default(false)
+  email             String?        @db.VarChar(255)
+  phone             String?        @db.VarChar(20)
+  website           String?        @db.VarChar(255)
+  contact_person    String?        @db.VarChar(150)
+  province          String         @db.VarChar(100)
+  city              String         @db.VarChar(100)
+  district          String?        @db.VarChar(100)
+  full_address      String
+  latitude          Decimal        @db.Decimal(10, 8)
+  longitude         Decimal        @db.Decimal(11, 8)
+  operating_hours   Json?
+  total_received_kg Decimal?       @default(0) @db.Decimal(12, 2)
+  avg_rating        Decimal?       @default(0) @db.Decimal(3, 2)
+  review_count      Int?           @default(0)
+  description       String?
+  logo_url          String?
+  image_urls        String[]
+  created_at        DateTime       @default(now()) @db.Timestamptz(6)
+  updated_at        DateTime       @default(now()) @db.Timestamptz(6)
+
+  @@index([city], map: "idx_partners_city")
+  @@index([latitude, longitude], map: "idx_partners_location")
+  @@index([status], map: "idx_partners_status")
+  @@index([partner_type], map: "idx_partners_type")
+}
+
+/// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
+/// This model contains row level security and requires additional setup for migrations. Visit https://pris.ly/d/row-level-security for more info.
+model pickups {
+  id                   String        @id @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
+  submission_id        String        @db.Uuid
+  user_id              String        @db.Uuid
+  logistics_partner_id String?       @db.Uuid
+  scheduled_date       DateTime      @db.Date
+  scheduled_time_start DateTime      @db.Time(6)
+  scheduled_time_end   DateTime      @db.Time(6)
+  status               pickup_status @default(scheduled)
+  pickup_address       String
+  pickup_province      String?       @db.VarChar(100)
+  pickup_city          String?       @db.VarChar(100)
+  pickup_district      String?       @db.VarChar(100)
+  pickup_latitude      Decimal?      @db.Decimal(10, 8)
+  pickup_longitude     Decimal?      @db.Decimal(11, 8)
+  courier_name         String?       @db.VarChar(150)
+  courier_phone        String?       @db.VarChar(20)
+  vehicle_plate        String?       @db.VarChar(15)
+  picked_up_at         DateTime?     @db.Timestamptz(6)
+  delivered_at         DateTime?     @db.Timestamptz(6)
+  failure_reason       String?
+  notes                String?
+  created_at           DateTime      @default(now()) @db.Timestamptz(6)
+  updated_at           DateTime      @default(now()) @db.Timestamptz(6)
+
+  @@index([scheduled_date], map: "idx_pickups_date")
+  @@index([status], map: "idx_pickups_status")
+  @@index([submission_id], map: "idx_pickups_submission")
+  @@index([user_id], map: "idx_pickups_user")
+}
+
+/// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
+/// This model contains row level security and requires additional setup for migrations. Visit https://pris.ly/d/row-level-security for more info.
+model points_transactions {
+  id               String   @id @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
+  user_id          String   @db.Uuid
+  submission_id    String?  @db.Uuid
+  transaction_type String   @db.VarChar(50)
+  points           Int
+  balance_after    Int
+  description      String?
+  reference_id     String?  @db.Uuid
+  created_at       DateTime @default(now()) @db.Timestamptz(6)
+
+  @@index([created_at(sort: Desc)], map: "idx_points_transactions_created")
+  @@index([user_id], map: "idx_points_transactions_user")
+}
+
+/// This table contains check constraints and requires additional setup for migrations. Visit https://pris.ly/d/check-constraints for more info.
+model spatial_ref_sys {
+  srid      Int     @id
+  auth_name String? @db.VarChar(256)
+  auth_srid Int?
+  srtext    String? @db.VarChar(2048)
+  proj4text String? @db.VarChar(2048)
+}
+
+/// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
+/// This model contains row level security and requires additional setup for migrations. Visit https://pris.ly/d/row-level-security for more info.
+model submissions {
+  id              String            @id @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
+  submission_code String            @unique @db.VarChar(20)
+  user_id         String            @db.Uuid
+  partner_id      String?           @db.Uuid
+  estimation_id   String?           @db.Uuid
+  method          submission_method @default(drop_off)
+  status          submission_status @default(draft)
+  devices_detail  Json
+  total_items     Int               @default(1)
+  total_weight_kg Decimal?          @db.Decimal(8, 3)
+  reward_type     reward_type?      @default(points)
+  reward_amount   Decimal?          @default(0) @db.Decimal(12, 2)
+  reward_paid_at  DateTime?         @db.Timestamptz(6)
+  user_notes      String?
+  partner_notes   String?
+  admin_notes     String?
+  proof_images    String[]
+  receipt_images  String[]
+  submitted_at    DateTime?         @db.Timestamptz(6)
+  confirmed_at    DateTime?         @db.Timestamptz(6)
+  received_at     DateTime?         @db.Timestamptz(6)
+  completed_at    DateTime?         @db.Timestamptz(6)
+  cancelled_at    DateTime?         @db.Timestamptz(6)
+  cancel_reason   String?
+  created_at      DateTime          @default(now()) @db.Timestamptz(6)
+  updated_at      DateTime          @default(now()) @db.Timestamptz(6)
+
+  @@index([submission_code], map: "idx_submissions_code")
+  @@index([created_at(sort: Desc)], map: "idx_submissions_created")
+  @@index([partner_id], map: "idx_submissions_partner")
+  @@index([status], map: "idx_submissions_status")
+  @@index([user_id], map: "idx_submissions_user")
+}
+
+/// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
+/// This model contains row level security and requires additional setup for migrations. Visit https://pris.ly/d/row-level-security for more info.
+model system_configs {
+  key         String   @id @db.VarChar(100)
+  value       Json
+  description String?
+  updated_by  String?  @db.Uuid
+  updated_at  DateTime @default(now()) @db.Timestamptz(6)
+}
+
+/// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
+/// This model contains row level security and requires additional setup for migrations. Visit https://pris.ly/d/row-level-security for more info.
+model user_badges {
+  id        String   @id @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
+  user_id   String   @db.Uuid
+  badge_id  String   @db.Uuid
+  earned_at DateTime @default(now()) @db.Timestamptz(6)
+
+  @@unique([user_id, badge_id])
+}
+
+/// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
+/// This model contains row level security and requires additional setup for migrations. Visit https://pris.ly/d/row-level-security for more info.
+model user_impacts {
+  id                           String   @id @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
+  user_id                      String   @unique @db.Uuid
+  total_devices_recycled       Int      @default(0)
+  total_weight_recycled_kg     Decimal  @default(0) @db.Decimal(12, 3)
+  total_heavy_metal_avoided_kg Decimal  @default(0) @db.Decimal(12, 4)
+  total_co2_avoided_kg         Decimal  @default(0) @db.Decimal(12, 4)
+  total_material_recycled_kg   Decimal  @default(0) @db.Decimal(12, 3)
+  total_water_saved_liter      Decimal  @default(0) @db.Decimal(12, 2)
+  total_points_earned          Int      @default(0)
+  total_points_redeemed        Int      @default(0)
+  total_reward_value           Decimal  @default(0) @db.Decimal(14, 2)
+  last_updated_at              DateTime @default(now()) @db.Timestamptz(6)
+  created_at                   DateTime @default(now()) @db.Timestamptz(6)
+
+  @@index([user_id], map: "idx_user_impacts_user")
+}
+
+enum content_type {
+  article
+  video
+  infographic
+  quiz
+  tip
+}
+
+enum device_category {
+  smartphone
+  laptop
+  tablet
+  desktop
+  printer
+  monitor
+  television
+  audio
+  camera
+  wearable
+  networking
+  other
+}
+
+enum device_condition {
+  new
+  good
+  fair
+  poor
+  broken
+}
+
+enum impact_metric_type {
+  heavy_metal_avoided_kg
+  co2_emission_avoided_kg
+  material_recycled_kg
+  devices_recycled_count
+  water_saved_liter
+}
+
+enum notification_type {
+  submission_update
+  pickup_update
+  reward_earned
+  educational_tip
+  system_alert
+}
+
+enum partner_status {
+  pending
+  verified
+  suspended
+  inactive
+}
+
+enum partner_type {
+  drop_point
+  producer
+  tpst
+  logistics
+  recycler
+}
+
+enum pickup_status {
+  scheduled
+  assigned
+  on_the_way
+  arrived
+  collected
+  delivered
+  failed
+  cancelled
+}
+
+enum reward_type {
+  cash_equivalent
+  points
+  donation
+}
+
+enum submission_method {
+  drop_off
+  pickup
+}
+
+enum submission_status {
+  draft
+  submitted
+  confirmed
+  picked_up
+  received
+  processed
+  completed
+  cancelled
+}
+
+enum user_role {
+  consumer
+  partner
+  admin
+  regulator
+}
+
+enum user_type {
+  individual
+  umkm
+  enterprise
 }
