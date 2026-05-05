@@ -1,14 +1,23 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { MapPin, Search, Navigation } from 'lucide-react';
 
 function DropPoints() {
   const [searchQuery, setSearchQuery] = useState('');
-  
-  const dummyLocations = [
-    { id: 1, name: "E-Cycle Hub Jakarta", address: "Jl. Sudirman No. 45, Jakarta Pusat", distance: "2.5 km", status: "Open Now" },
-    { id: 2, name: "EcoDrop Bandung", address: "Jl. Dago No. 112, Bandung", distance: "145 km", status: "Closed" },
-    { id: 3, name: "TechRecycle Surabaya", address: "Jl. Pemuda No. 10, Surabaya", distance: "760 km", status: "Open Now" },
-  ];
+  const [locations, setLocations] = useState([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    fetch('http://localhost:5000/api/droppoints')
+      .then(res => res.json())
+      .then(data => {
+        setLocations(data);
+        setLoading(false);
+      })
+      .catch(err => {
+        console.error("Error fetching drop points:", err);
+        setLoading(false);
+      });
+  }, []);
 
   return (
     <div className="container" style={{ padding: '2rem 2rem 6rem' }}>
@@ -39,13 +48,18 @@ function DropPoints() {
           </div>
 
           <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
-            {dummyLocations.map(loc => (
+            {loading ? (
+              <p style={{ textAlign: 'center', color: 'var(--text-muted)' }}>Loading drop points...</p>
+            ) : locations.length === 0 ? (
+              <p style={{ textAlign: 'center', color: 'var(--text-muted)' }}>Tidak ada data drop point.</p>
+            ) : locations.map(loc => (
               <div key={loc.id} style={{ padding: '1rem', border: '1px solid #eee', borderRadius: '16px', transition: 'var(--transition)', cursor: 'pointer' }} className="hover-highlight">
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '0.5rem' }}>
                   <h4 style={{ fontWeight: 600 }}>{loc.name}</h4>
-                  <span style={{ fontSize: '0.75rem', fontWeight: 600, color: loc.status === 'Open Now' ? 'var(--primary)' : 'var(--text-muted)' }}>{loc.status}</span>
+                  <span style={{ fontSize: '0.75rem', fontWeight: 600, color: 'var(--primary)' }}>Buka</span>
                 </div>
-                <p style={{ fontSize: '0.85rem', color: 'var(--text-muted)', marginBottom: '1rem' }}>{loc.address}</p>
+                <p style={{ fontSize: '0.85rem', color: 'var(--text-muted)', marginBottom: '0.5rem' }}>{loc.address}</p>
+                <p style={{ fontSize: '0.75rem', color: 'var(--text-muted)', marginBottom: '1rem' }}>Jam Buka: {loc.operatingHours || '08:00 - 17:00'}</p>
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                   <span style={{ fontSize: '0.8rem', display: 'flex', alignItems: 'center', gap: '0.2rem' }}><Navigation size={14}/> {loc.distance}</span>
                   <button className="pill-btn" style={{ padding: '0.4rem 1rem', fontSize: '0.8rem' }}>Directions</button>
