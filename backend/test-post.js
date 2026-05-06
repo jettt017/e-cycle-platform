@@ -5,7 +5,7 @@ const payload = {
   city: "Jakarta",
   postalCode: "12345",
   date: "2026-05-10",
-  time: "09:00 - 11:00",
+  time: "08:00 – 10:00",
   deviceTypes: ["Smartphone"],
   deviceCount: "1-3",
   kondisi: ["Baik"],
