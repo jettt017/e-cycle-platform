@@ -72,3 +72,102 @@ model TransactionItem {
 
   @@map("ecycle_transaction_items")
 }
+
+model pickups {
+  id                   String        @id @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
+  submission_id        String        @db.Uuid
+  user_id              String        @db.Uuid
+  logistics_partner_id String?       @db.Uuid
+  scheduled_date       DateTime      @db.Date
+  scheduled_time_start DateTime      @db.Time(6)
+  scheduled_time_end   DateTime      @db.Time(6)
+  status               pickup_status @default(scheduled)
+  pickup_address       String
+  pickup_province      String?       @db.VarChar(100)
+  pickup_city          String?       @db.VarChar(100)
+  pickup_district      String?       @db.VarChar(100)
+  pickup_latitude      Decimal?      @db.Decimal(10, 8)
+  pickup_longitude     Decimal?      @db.Decimal(11, 8)
+  courier_name         String?       @db.VarChar(150)
+  courier_phone        String?       @db.VarChar(20)
+  vehicle_plate        String?       @db.VarChar(15)
+  picked_up_at         DateTime?     @db.Timestamptz(6)
+  delivered_at         DateTime?     @db.Timestamptz(6)
+  failure_reason       String?
+  notes                String?
+  created_at           DateTime      @default(now()) @db.Timestamptz(6)
+  updated_at           DateTime      @default(now()) @db.Timestamptz(6)
+
+  @@index([scheduled_date], map: "idx_pickups_date")
+  @@index([status], map: "idx_pickups_status")
+  @@index([submission_id], map: "idx_pickups_submission")
+  @@index([user_id], map: "idx_pickups_user")
+}
+
+model submissions {
+  id              String            @id @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
+  submission_code String            @unique @db.VarChar(20)
+  user_id         String            @db.Uuid
+  partner_id      String?           @db.Uuid
+  estimation_id   String?           @db.Uuid
+  method          submission_method @default(drop_off)
+  status          submission_status @default(draft)
+  devices_detail  Json
+  total_items     Int               @default(1)
+  total_weight_kg Decimal?          @db.Decimal(8, 3)
+  reward_type     reward_type?      @default(points)
+  reward_amount   Decimal?          @default(0) @db.Decimal(12, 2)
+  reward_paid_at  DateTime?         @db.Timestamptz(6)
+  user_notes      String?
+  partner_notes   String?
+  admin_notes     String?
+  proof_images    String[]
+  receipt_images  String[]
+  submitted_at    DateTime?         @db.Timestamptz(6)
+  confirmed_at    DateTime?         @db.Timestamptz(6)
+  received_at     DateTime?         @db.Timestamptz(6)
+  completed_at    DateTime?         @db.Timestamptz(6)
+  cancelled_at    DateTime?         @db.Timestamptz(6)
+  cancel_reason   String?
+  created_at      DateTime          @default(now()) @db.Timestamptz(6)
+  updated_at      DateTime          @default(now()) @db.Timestamptz(6)
+
+  @@index([submission_code], map: "idx_submissions_code")
+  @@index([created_at(sort: Desc)], map: "idx_submissions_created")
+  @@index([partner_id], map: "idx_submissions_partner")
+  @@index([status], map: "idx_submissions_status")
+  @@index([user_id], map: "idx_submissions_user")
+}
+
+enum pickup_status {
+  scheduled
+  assigned
+  on_the_way
+  arrived
+  collected
+  delivered
+  failed
+  cancelled
+}
+
+enum reward_type {
+  cash_equivalent
+  points
+  donation
+}
+
+enum submission_method {
+  drop_off
+  pickup
+}
+
+enum submission_status {
+  draft
+  submitted
+  confirmed
+  picked_up
+  received
+  processed
+  completed
+  cancelled
+}
